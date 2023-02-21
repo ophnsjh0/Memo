@@ -1,4 +1,12 @@
 제목 : 정책 기반 시스코 ACI 데이터센터
+지은이 : 
+  - Lucien Avramov, 
+  - Maurizio Portolani
+번역 : 
+  - 최우형(cisco 데이터센터 컨설팅 엔지니어)
+  - 조성덕(cisco 엔터프라이즈 시스템 엔지니어)
+  - 문병철(cisco 엔터프라이즈 시스템 엔지니어)
+출판일 : 2015년 11월 10일
 
 Chapter.1 데이터센터 아키텍처 고려사항 
  1. 애플리케이션과 스토리지 
@@ -12,4 +20,176 @@ Chapter.1 데이터센터 아키텍처 고려사항
  3. 데이터센터 디자인
  4. Spine-Leaf ACI 기본 아키텍처의 논리적 데이터센터 디자인요약 
  
-Chapter.2 
+Chapter.2 클라우드 아키텍처를 위한 데이터센터 블록구축
+ 1. 클라우드 아키텍처 소개
+ 2. 클라우드 컴퓨팅의 네트워크 요구사항과 ACI솔루션
+ 3. 아마존 웹서비스 모델
+ 4. 서버 프로비저닝 자동화
+   - PXE Booting
+   - Chef/Puppet/CFengine 또는 이와 유사한 도구 기반의 OS
+   - 설치 / 배포
+ 5. IaaS를 위한 오케스트레이션
+   - vCloud Director
+   - OpenStack
+   - UCS 디렉터
+   - 시스코 CIAC
+   - 서로다른 추상화 모델 간의 이해 
+
+Chapter.3 정책 기반의 데이터센터
+ 1. 왜 정책 기반의 모델이 필요한가?
+ 2. 정책 이론
+ 3. 시스코 APIC 정책 기반 객체 모델
+   - 앤드포인트 그룹(EPG)
+   - 시스코 APIC 정책적용
+   - 애플리케이션 네트워크 프로파일(ANP)  
+   - Contract
+ 4. 시스코 APIC의 이해
+   - 시스코 ACI운영 시스템 (시스코 ACI 패브릭 OS)
+   - 아키텍처: 시스코 APIC의 구성 요소와 기능
+   - Policy Manager
+   - Topology Manager 
+   - Observer
+   - Boot Director
+   - Appliance Director
+   - VMM Manager
+   - Event Manager
+   - Appliance Element
+   - 아키텍쳐 -> 샤딩 기반의 데이터 관리
+   - 사용자 인터페이스: GUI
+   - 사용자 인터페이스: CLI
+   - 사용자 인터페이스: RESTful APIC
+   - 시스템 접근: Authentication(인증), Authorization(인가), RBAC
+   
+Chapter.4 운영 모델
+ 1. 현대적인 데이터센터를 위한 핵심 기술과 도구 소개
+   - 네트워크 관리 옵션
+   - REST 프로토콜
+   - XML, JSON과 YAML
+   - 파이썬
+   - Git와 GitHub
+ 2. Cisco APIC 운영
+   - 객체 트리
+   - REST를 사용한 네트워크 프로그래밍
+   - ACI SDK
+ 3. 추가정보 
+ 
+Chapter.5 하이퍼바이저를 사용한 데이터센터 디자인 
+ 1. 가상화 서버 네트워킁(Virtualization Server Networking)
+   - 서버에서 소프트웨어 스위칭 요소가 필요한 이유는?
+   - 네트워크 구성 요소가
+   - 가상머신의 핫 마이그레이션 
+ 2. 세그멘테이션(Segmentation Option)
+   - VLAN
+   - VXLAN
+ 3. Microsoft Hyper-V 네트워킹
+ 4. 리눅스 KVM과 네트워킹
+   - 리눅스 브리징
+   - 오픈 vSwitch
+ 5. VMware ESX/ESXi 네트워킹
+   - VMware vSwitch와 VDS
+   - VMware ESXi 서버 트래픽 요구 사항
+   - vCloud 디렉터와 vApps
+ 6. Cisco Nexus 1000v
+ 7. VN-TAG를 사용한 포트 확장(port Extention)
+ 8. 가상서버 연결을 위한 Cisco ACI 모델링
+   - 오버레이 노말라이제이션(Overlay Normalization)
+   - VMM 도메인
+   - 엔드포인트 디스커버리
+   - 정책 적용의 신속성(policy resolution immediacy)
+   - Hyper-V와 Cisco ACI 통합
+   - KVM과 Cisco ACI 통합
+   - VMware ESX와 Cisco ACI 통합
+   
+Chapter.6 오픈스택 
+ 1. 오픈스택이란?
+   - Nova
+   - Neutron
+   - Swift
+   - Cinder
+   - Horizon
+   - Heat
+   - Ironic
+ 2. 기업에서의 오픈스택 구현
+ 3. Cisco ACI와 오픈스택의 이점
+   - Cisco ACI 정책모델
+   - 물리 및 가상 네트워크 통합
+   - 패브릭 터널(Fabric Tunnels)
+   - 서비스 체이닝
+   - 원격 측정
+ 4. 오픈스택 APIC 드라이버 아키텍처와 운영
+   - Cisco ACI와 오픈스택 통합
+ 5. 적용 예제
+   - Icehouse의 설치 
+   - Cisco APIC 드라이버 설정 
+   - 트러블슈팅
+ 6. 오픈스택의 그룹 기반 정책 프로젝트
+ 
+Chapter.7 ACI 패브릭 디자인방법론
+ 1. ACI 패브릭 핵심 기능 요약 
+   - ACI 패킷 전송 방식
+   - 엔드포인트 그룹으로 네트워크 분할(Segmentation)
+   - 관리 모델
+ 2. 하드웨어와 소프트웨어
+ 3. 물리적 토폴로지
+   - Cisco APIC 디자인 고려 사항
+   - Spine 디자인 고려 사항
+   - Leaf 디자인 고려 사항 -
+ 4. 멀티 테넌시(Multi-Tenancy) 고려 사항
+ 5. 초기 설정 단계 
+   - Zero-Touch Provisioning
+   - 네트워크 관리
+   - 정책 기반의 포트 설정
+   - 인터페이스 정책 그룹과 포트 채널
+   - 가상 서버 관리자(VMM) 도메인
+ 6. 가상 네트워크 구성 설정
+   - 브리지 도메인(BD)
+   - 엔드포인트 연결
+   - 외부 네트워크 연결(External Connectivity)
+   
+Chapter.8 ACI 서비스 통합
+ 1. L4-L7 서비스와 ACI 디자인 개요
+   - 장점
+   - 서비스그래프와 엔드포인트 연결을
+   - 가상화 서버로의 확장
+   - 관리 모델
+   - 서비스그래프, 함수, 렌더링
+ 2. 하드웨어 및 소프트웨어 지원
+ 3. 서비스 인서션의 시스코 ACI 모델화
+   - 서비스그래프 정의
+   - 콘크리트 디바이스와 로지컬 디바이스
+   - 로지컬 디바이스 실렉터(또는 컨텍스트)
+   - 브리지 도메인 분리
+ 4. 설정단계
+   - 서비스그래프 정의
+   - 콘크리트 디바이스와 콘크리트 디바이스 클러스터 정의 
+
+Chapter.9 향상된 텔레메트리(원격 측정)
+ 1. 아토믹 카운터
+   - 원리
+   - 상세 설명과 예제
+   - 아토믹 카운터와 APIC
+   
+ 2. 레이턴시 메트릭
+ 3. ACI 헬스 모니터링
+   - 통계
+   - 장애 관리
+   - 이벤트, 로그 진단
+   - 헬스 스코어
+ 4. 중앙 집중형 Show Tech-Support ACI 접근법
+ 
+Chapter.10 데이터센터스위치 아키텍처
+ 1. 데이터, 컨트롤, 메니지먼트 플레인
+   - 데이터, 컨트롤, 메니지먼트 플레인의 분리
+   - 데이터, 컨트롤, 메니지먼트 플레인간의 상호 작용
+   - CPU 보호를 위해 CoPP가 지원되는 컨트롤 플레인
+ 2. 데이터센터 스위치 구조
+   - 컷쓰루 스위칭: 데이터센터를 위한 성능 향상
+   - 크로스바 스위치 패브릭 구조
+   - 중앙 공유형 메모리
+   - 다단계 SoC
+ 3. QoS 기초
+   - 데이터센터 QoS 요구 사항
+   - 데이터센터 QoS 기능 
+   - 넥서스 QoS 기능: MQC 모델 
+   
+   
