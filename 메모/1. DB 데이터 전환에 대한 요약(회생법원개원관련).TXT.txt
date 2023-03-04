@@ -1,0 +1,106 @@
+1. DB 저장 공간 확보 
+
+1)Undo, 2)Redo, Temp 가장 큰 테이블 기준 2배 이상 확보 
+
+EX) 
+ - Undo TS(UNDOTBS_MIG): 144GB --> 324GB
+ - Temp TS(BIG_TEMP) : 345 --> 691GB
+ - Redo : 1GB 이상 Group 5개 이상
+ 512MB(8EA)*2EA --> 512MB(8EA)*2EA + 1024MB(5EA)*1EA
+
+1) Undo 
+  1.Undo = Rollback,롤백
+  2. Undo Data
+    - 원본 데이터
+  3. Undo Tablespace
+    - 사용자가 DML을 수행할 경우 Undo Data들을 저장해 두는 특별한 Tablespace
+    - 서버 프로세스가 Undo Tablespace에 Undo Segment를 생성해, 각 사용자별로 Undo Segment를 할당에서 Undo Data를 관리
+    - Instance 별로 적어도 하나 이상의 Undo Tablespace가 있어야함
+  4. Undo Segment
+    - Undo Data를 저장하고 있는 테이블
+    - 종류: System, Non-System, Deferred(만들수없음, 알아서 생성됨, 작업후 자동 삭제)
+
+ 참조URL : http://dbcafe.co.kr/wiki/index.php/UNDO_REDO#Undo_.EC.99.80_Redo
+
+
+ 2) Redo 
+  1. 리두 로그 버퍼는 데이터베이스에서 일어난 모든 변화를 저장하는 메모리 공간
+  2. 리두 로그 버퍼에 저장된 리두 항목들은 LGWR에 의해 데이터베이스 복구에 사용되는 온라인 리두 로그 파일에 저장
+  3. LOG_BUFFER 파라미터로 Redo Log Buffer의 크기를 결정
+  4. 리두 정보는 항상 실제 변경작업보다 먼저 보관되어야 어떤 상황에서도 복구가 가능해집니다.
+  5. 따라서 트랜잭션을 수행하는(데이터베이스 블록에 변경을 가하는) 프로세스는 우선 자신의 메모리 영역 내에서 수행하고자 하는 
+     작업에 대한 리두 레코드를 만들며, 이를 먼저 로그버퍼에 기록하고 난 후에 실제 버퍼블록에도 리두 레코드에 담긴 내용을 따라 
+     적용하게 됩니다. 또한 같은 이유로 오라클은 변경된 버퍼 캐쉬 블록을 디스크에 기록하기 전에 먼저 관련된 로그버퍼를 
+     로그파일에 기록하는 작업을 처리
+
+  참조URL : http://dbcafe.co.kr/wiki/index.php/UNDO_REDO#Undo_.EC.99.80_Redo
+
+
+2. PDML 사용 
+
+ EX)
+  - 1)PDML : Default Disable
+  - PQ, PDDL : Default Enabled
+  - 모든 Update문에 PDML Enable 수행 후 수행(DOP : 8로 수행 -> CPU Core수)
+ SQL> alter session set enable parallel dml;
+   -테스트 결과 : 약 58GB, 4억 5천만건 테이블 (PDML Disable) 2시간 --> (PDML Enable) 10분이내
+
+1) PDML
+  1. Parallel Execution(이하 PE)은 한 개의 작업을 여러 개로 나누어 동시 처리를 실행하는 방법으로 데이터 웨어하우스(DW: Data Warehouse)와
+     BI(Business Information)를 지원하는 대용량 DB에서 발생하는 데이터 처리의 응답 시간을 획기적으로 줄일 수 있다. 
+     또한 OLTP(On-Line Transaction Processing) 시스템에서도 배치 처리의 성능을 높일 수 있다.
+
+  2. 2PE는 시스템 리소스의 활용을 극대화하여 데이터베이스 성능을 향상시키고자 하는 것이 기본 사상이기 때문에 다음과 같은 작업에 대해 성능 향상을 기대할 수 있다.
+    - 대용량 테이블 또는 파티션 인덱스 스캔(partitioned index scan)이나 조인 등의 쿼리
+    - 대용량 테이블의 인덱스 생성
+    - Bulk insert나 update, delete
+    - Aggregations
+
+  3. PE가 시스템 리소스를 최대한 활용하는 방식인 만큼 잘못 사용했을 때는 리소스 고갈로 중요한 데이터 처리가 지연되거나 오히려 기대했던 성능이 나오지 못하는 경우가 발생할 수 있기 때문에 사용에 주의가 필요하다.
+
+  4. PE로 성능 향상을 기대할 수 있는 시스템 구성과 환경은 다음과 같다.
+    - CPU, 클러스터링 등 시스템 측면의 Parallel 구성
+    - 충분한 입출력 대역폭
+    - 여유 있는 CPU 사용률(예: CPU 사용량이 30% 이하일 때)
+    - 정렬, 해싱 그리고 입출력 버퍼와 같은 작업을 수행하기 충분한 메모리
+
+  참조 URL : https://technet.tmaxsoft.com/upload/download/online/tibero/pver-20140808-000002/tibero_admin/parallel.html
+               http://dbcafe.co.kr/wiki/index.php/%EC%98%A4%EB%9D%BC%ED%81%B4_%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0
+               (3.27 Parallel Processing Parameters)
+
+3. Index 생성 최적화(, ArchiveLog Non-Archive Mode 
+ - 대량 Update 작업 전 해당 테이블의 모든 Index Unusable 후 작업 
+ - 대량 Update 작업 완료 후 Parallel 8 & Nologging Index 생성 후 -> Noparall Logging으로 변경
+ - 1)ArchiveLog : Non-Archive Mode 적용
+
+ 1) Oracle 데이터 복구를위해 데이터베이스에 대한 모든 변경사항을 redo 로그 파일에 적어둔다, redo로그 파일에 변경정보를 적어서 보관하는데,
+두가지 방법을 사용할 수 있으며, 아카이블 로그 모드(Archive Log Mode)와 노 아카이브 로그 모드(no Archive Log Mode)다.
+
+  참조 URL : https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=hymne&logNo=221503267653
+
+
+4. Constraint 최적화 
+  - 대량 Update 작업 전 FK(Foreign Key) Disable
+  - 대량 Update 작업 전 PK(Primary Key) Disable -> 적용 필요한지 정확하지 않음
+  - 작업 시간이 부족할 경우에 1)Enable Novalidate 옵션 사용 검토 
+
+####################################################################
+
+대량 데이터를 다른 테이블로 옮기는 방법 2가지 
+
+(ITAS, CTAS) ; 아이타스 , 씨타스
+  ITAS : Insert into Table name Select
+   예제 :
+    insert into member2
+    select * from member;
+
+  CTAS : Create Table name AS Select ...
+   예제 :
+    create table member2
+    as select * from member;
+
+차이점 :
+ITAS는 옮길 대상의 테이블이 존재하고, 데이터만 옮기고 싶을 때 사용하고,
+CTAS는 대상 테이블이 존재하지 않을 때, 사용합니다.
+
+ 참조 URL : https://gyh214.tistory.com/57
