@@ -54,17 +54,56 @@ Chapter.3 정책 기반의 데이터센터
  3. 시스코 APIC 정책 기반 객체 모델
    ; 물리적 구성 : Spine <-> Leaf 구조 + APIC 
    ; 논리적 구성 : 
-               1. Tenant : 논리적 컨테이너 또는 애플리케이션 정책을 위한 폴더의 개념 
-               2. Common Tenant : 모든 Tenant가 사용할 수 있는 공유 가능한 정책을 가지고 있음 (ex: DNS, AD, DHCP 서버 등)
-               3. Context : 사설 Layer3 네임스페이스 또는 Layer3 네트워크 (ex: VRF), 네트워크 단위
-               4. EPG : 동일한 서비스를 제공하는 애플리케이션 계층들의 집합체, IN/OUT 필터, QoS 저책, 트래픽 리다이렉션 정책 등 적용 
-               5. ANP : EPG들 간의 상호 작용에 대해 정의하는 정책 조합   
+     1. Tenant : 논리적 컨테이너 또는 애플리케이션 정책을 위한 폴더의 개념 
+     2. Common Tenant : 모든 Tenant가 사용할 수 있는 공유 가능한 정책을 가지고 있음 (ex: DNS, AD, DHCP 서버 등)
+     3. Context : 사설 Layer3 네임스페이스 또는 Layer3 네트워크 (ex: VRF), 네트워크 단위
+     4. EPG : 동일한 서비스를 제공하는 애플리케이션 계층들의 집합체, IN/OUT 필터, QoS 저책, 트래픽 리다이렉션 정책 등 적용 
+     5. ANP : EPG들 간의 상호 작용에 대해 정의하는 정책 조합   
 
-   - 앤드포인트 그룹(EPG)
-     ; 
+   - 엔드포인트 그룹(EPG)
+     ; 유사한 정책을 필요로 하는 개체들에 대한 논리적인 그룹핑을 제공함 
+     ; EPG 사용에 대한 몇가지 범례
+       ① VLAN 기반의 EPG 정의 
+          - 특정 VLAN에 연결되는 모든 엔드 포인트를 EPG로 정의 
+       ② VXLAN 기반의 EPG 정의 
+          - 특정 VLXLAN에 연결되는 모든 엔드 포인트를 EPG로 정의
+       ③ VMware 분산스위치 포트 그룹 기반의 EPG 정의 
+       ④ IP또는 IP서브넷 기반의 EPG 정의
+          - EX) 172.168.10.10 또는 172.168.10*
+       ⑤ DNS 또는 DNS 범주 기반의 EPG 정의
+          - EX) example.web.network.com 또는 *.web.networks.com
+      ; IP기반 엔드포인트 정책 외는 IP 주소 체계가 바뀐다고 해서 정책에 변화가 없음 - 장점 
+      ; TCAM(The physical ternary content-addressable memory)의 효율성 증가
+         s(5) * f(4) * d(5) -> s(1) * f(4) * d(1) : source와 destination이 EPG로 묶여 1로 처리 
+       
    - 시스코 APIC 정책적용
+     ; 정책 - 유니캐스트 구성 시 (멀티캐스트 구성 시는 112P 참조)
+       - 인바운드, 아웃바운드 구성가능 
+       - permit, deny, redirect, log, copy(SPAN), 마킹 가능 
+       - 와일드 카드 적용 가능 -> 적용순서 p110 참조 ★★★
+       - 정책 적용 순서 -> 적용순서 P110 참조 ★★★
+
    - 애플리케이션 네트워크 프로파일(ANP)  
+     ; ANP (Application Network Profile) : EPG들 간의 연결 및 연결을 정의하는 정책의 집합 (큰 그룹)
+     ; EPG <-> EPG <-> EPG 사이에 정책의 집합 
+
    - Contract
+     ; EPG 사이에서 실제 정책을 적용하는 객체 
+     ; permit, deny, redirect, log, copy(SPAN), 마킹, QoS, 서비스 그래프 등을 정의
+     ; 객체화 되어 여러 곳에 적용 가능하다, 
+     ; 세부적인 정책은 Subject 단위로 적용 
+     ; 하위 요소 
+       1) Subject : 특정 애플리케이션 또는  서비스에 적용되는 필터의 그룹
+       2) Filter : 트래픽을 분류 하는데 사용
+       3) Action : 허용, 거부, 마킹 등이 필터에 적용되어 수행되는 방법
+       4) Labels : 추가적인 정책에 대해 정의하기 위한 목적으로 Subject, EPG와 같은 객체에 선택적으로 사용
+   
+  - Taboo
+    ; 기본적으로 접근 거부하게 되는 목록을 구성
+    ; Contract 상위 개념으로 적용되면 Contract 허용시에도 접근 거부 됨 
+    ; 블랙리스트 모델에서 -> 화이트리스트 모델 마이그레이션 시 유용 ????? 
+    ; Taboo로 큰틀에 Deny 적용 후 Contract 필터로 세부항목 허용 
+
  4. 시스코 APIC의 이해
    - 시스코 ACI운영 시스템 (시스코 ACI 패브릭 OS)
    - 아키텍처: 시스코 APIC의 구성 요소와 기능
